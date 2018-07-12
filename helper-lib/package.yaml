@@ -1,0 +1,7 @@
+name: helper-lib
+
+dependencies:
+- base
+
+library:
+  source-dirs: src
