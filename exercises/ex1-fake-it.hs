@@ -1,4 +1,4 @@
-import FakeIt
+import FakeIt1
 import Prelude ()
 
 main = run inner

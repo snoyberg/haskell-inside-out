@@ -239,9 +239,9 @@ Imagine this crazy rewrite:
 ```
 fn main(iostate1):
   iostate2 = print("What is your name?", iostate1)
-  (name, iostate3) = getString(iostate2)
+  (iostate3, name) = getString(iostate2)
   iostate4 = print("What is your age?", iostate3)
-  (age, iostate5) = getInt(iostate4)
+  (iostate5, age) = getInt(iostate4)
   iostate6 = print( name + " is " + age + " years old"
                   , iostate5)
   return iostate6
@@ -261,7 +261,7 @@ fn main(iostate1):
 * Make it run :)
 
 ```haskell
-getString :: IOState -> (String, IOState)
+getString :: IOState -> (IOState, String)
 print :: String -> IOState -> IOState
 ```
 
@@ -276,3 +276,18 @@ print :: String -> IOState -> IOState
 * We're making our life really difficult
 * Can we do better? Yes
 * But let's deal with age next
+
+---
+
+## Exercise 2
+
+* Run `stack runghc ex2-fake-it-age.hs`
+* Make it run
+
+We now have a new helper function:
+
+```haskell
+read :: String -> Int
+```
+
+Challenge: why is this function evil?
