@@ -25,6 +25,16 @@ title: Haskell from the Inside Out
 
 ---
 
+## Format
+
+* This is _not_ a lecture or talk
+* This is an interactive workshop
+* I'm going to ask questions
+* There will be exercises to play with
+* לרגישו ההית
+
+---
+
 ## Haskell is _weird_
 
 * Computers are inherently imperative
@@ -58,85 +68,255 @@ title: Haskell from the Inside Out
 
 ---
 
-## Non-trick question
+## Pure math
 
-How should this program (pseudocode) behave?
-
-```
-print("What is your name?")
-name = getString()
-print("What is your age?")
-age = getInt()
-print(name + " is " + age + " years old")
-```
-
-Is it the same as this?
+We want to evaluate this arithmetic expression
 
 ```
-age = getInt()
-name = getString()
-print("What is your age?")
-print("What is your name?")
-print(name + " is " + age + " years old")
+(2 + 3) * (4 + 5)
 ```
 
-Why not?
+1. Do it in your heads, try to note how you procssed it
+2. Let's write up an answer in imperative pseudocode
 
 ---
 
-## Let's do math
-
-Consider the math expression `(2 + 3) * (4 + 5)`
+## Imperative solution
 
 ```
-x = 2 + 3
-y = 4 + 5
-return (x * y)
+x = 2 + 3;
+y = 4 + 5;
+z = x * y;
+return z;
 ```
 
-And is this the same?
+* Any objections?
+* Not terribly different from how the processor itself would do things
+
+---
+
+## Variation 1
+
+Do these two things do the same thing?
 
 ```
-y = 4 + 5
-x = 2 + 3
-return (x * y)
+x = 2 + 3;
+y = 4 + 5;
+z = x * y;
+return z;
+```
+
+```
+y = 4 + 5;
+x = 2 + 3;
+z = x * y;
+return z;
 ```
 
 ---
 
-## Does order matter?
+## Variation 2
 
-* First example: absolutely! We'll get the wrong user interaction otherwise
-* Second example: not at all! Math is math!
+Do these two things do the same thing?
 
-Can we come up with some general rules about when we can rearrange
-order of evaluating things?
+```
+x = 2 + 3;
+y = 4 + 5;
+z = x * y;
+return z;
+```
+
+```
+z = x * y;
+x = 2 + 3;
+y = 4 + 5;
+return z;
+```
 
 ---
 
-## Repeated evaluation
+## Variation 3
 
-Does this code work the same way?
-
-```
-print("What is your name?")
-name = getString()
-name = getString()
-print("What is your age?")
-age = getInt()
-print(name + " is " + age + " years old")
-```
-
-How about this?
+Do these two things do the same thing?
 
 ```
-x1 = 2 + 3
-x2 = 2 + 3
-x3 = 2 + 3
-x4 = 2 + 3
-y = 4 + 5
-return (x4 * y)
+x = 2 + 3;
+y = 4 + 5;
+z = x * y;
+return z;
 ```
+
+```
+x1 = 2 + 3;
+x2 = 2 + 3;
+x3 = 2 + 3;
+x4 = 2 + 3;
+y = 4 + 5;
+z = x4 * y;
+return z;
+```
+
+---
+
+## Variation 4
+
+Do these two things do the same thing?
+
+```
+x = 2 + 3;
+y = 4 + 5;
+z = x * y;
+return z;
+```
+
+```
+w = 1 + 2;
+x = 2 + 3;
+y = 4 + 5;
+z = x * y;
+return z;
+```
+
+---
+
+## Takeaways
+
+* Some programs do different things internally, but externaly behave the same
+* Must calculate `x` and `y` before `z`
+* Can calculate other, irrelevant things like `w`
+* Can recalculate `x` as many times as desired
+
+Let's do something similar...
+
+---
+
+## Say hi
+
+* Get a name from the user
+* Print the name back out
+* We'll use imperative pseudocode again
+
+---
+
+## Basic solution
+
+```
+print("What's your name?");
+str = getString();
+print(str);
+```
+
+---
+
+## Variation 1
+
+Do these two things do the same thing?
+
+```
+print("What's your name?");
+str = getString();
+print(str);
+```
+
+```
+str = getString();
+print("What's your name?");
+print(str);
+```
+
+---
+
+## Variation 2
+
+Do these two things do the same thing?
+
+```
+print("What's your name?");
+str = getString();
+print(str);
+```
+
+```
+print(str);
+print("What's your name?");
+str = getString();
+```
+
+---
+
+## Variation 3
+
+Do these two things do the same thing?
+
+```
+print("What's your name?");
+str = getString();
+print(str);
+```
+
+```
+print("What's your name?");
+str1 = getString();
+str2 = getString();
+str3 = getString();
+str4 = getString();
+print(str4);
+```
+
+---
+
+## Variation 4
+
+Do these two things do the same thing?
+
+```
+print("What's your name?");
+str = getString();
+print(str);
+```
+
+```
+print("What's up?");
+print("What's your name?");
+str = getString();
+print(str);
+```
+
+---
+
+## Takeaways
+
+* Must call `getString()` and set `str` before running `print(str)`
+* Cannot run other, irrelevant things like `print("Whats' up?")`
+* Cannot run `getString()` multiple times
+
+Compare to our previous takeaways:
+
+* Must calculate `x` and `y` before `z`
+* Can calculate other, irrelevant things like `w`
+* Can recalculate `x` as many times as desired
+
+What gives?
+
+---
+
+## Discussion
+
+* What's the difference between arithmetic and input/output
+* What's the result of running `2 + 3`?
+* What's the result of running `getString()`?
+* What's the result of running `print("What's your name?")`?
+
+---
+
+## What's a function?
+
+* Maps input to output
+* What are the input and output to the following:
+    * Plus function `+`
+    * `getString`
+    * `print`
+    * `rollDie`
 
 ---
 
@@ -164,31 +344,6 @@ return (x4 * y)
 
 ---
 
-## Push the envelope
-
-Can we rewrite:
-
-```
-x = 2 + 3
-y = 4 + 5
-return (x * y)
-```
-
-To
-
-```
-z = x * y
-y = 4 + 5
-x = 2 + 3
-return z
-```
-
-* Probably not
-* We don't know `x` and `y` when we try to calculate `z`
-* So order of evaluation _does_ matter
-
----
-
 ## Focus on math
 
 `(2 + 3) * (4 + 5)`
@@ -210,8 +365,7 @@ return z
   result
     * E.g., no I/O
     * Little bit of a lie: we know the CPU got hotter :)
-
-Does this explain our rules from before?
+* Different from what we call "functions" in most programming languages!
 
 ---
 
