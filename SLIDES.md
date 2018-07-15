@@ -23,7 +23,7 @@ title: Haskell from the Inside Out
 * Follow instructions in README.md
 * Kick it off now, may take some time to download
 
----
+----
 
 ## Format
 
@@ -31,9 +31,9 @@ title: Haskell from the Inside Out
 * This is an interactive workshop
 * I'm going to ask questions
 * There will be exercises to play with
-* לרגישו ההית
+* תרגישו בבית
 
----
+----
 
 ## Haskell is _weird_
 
@@ -45,7 +45,7 @@ title: Haskell from the Inside Out
     * Understand where this weirdness comes from
     * See why this weirdness is really useful
 
----
+----
 
 ## Purely functional
 
@@ -58,7 +58,7 @@ title: Haskell from the Inside Out
     * Trivially create Software Transactional Memory
 * Not obvious how to make this work in a programming language
 
----
+----
 
 ## Diving in
 
@@ -79,7 +79,7 @@ We want to evaluate this arithmetic expression
 1. Do it in your heads, try to note how you procssed it
 2. Let's write up an answer in imperative pseudocode
 
----
+----
 
 ## Imperative solution
 
@@ -93,7 +93,7 @@ return z;
 * Any objections?
 * Not terribly different from how the processor itself would do things
 
----
+----
 
 ## Variation 1
 
@@ -113,7 +113,7 @@ z = x * y;
 return z;
 ```
 
----
+----
 
 ## Variation 2
 
@@ -133,7 +133,7 @@ y = 4 + 5;
 return z;
 ```
 
----
+----
 
 ## Variation 3
 
@@ -156,7 +156,7 @@ z = x4 * y;
 return z;
 ```
 
----
+----
 
 ## Variation 4
 
@@ -177,7 +177,7 @@ z = x * y;
 return z;
 ```
 
----
+----
 
 ## Takeaways
 
@@ -196,7 +196,7 @@ Let's do something similar...
 * Print the name back out
 * We'll use imperative pseudocode again
 
----
+----
 
 ## Basic solution
 
@@ -206,7 +206,7 @@ str = getString();
 print(str);
 ```
 
----
+----
 
 ## Variation 1
 
@@ -224,7 +224,7 @@ print("What's your name?");
 print(str);
 ```
 
----
+----
 
 ## Variation 2
 
@@ -242,7 +242,7 @@ print("What's your name?");
 str = getString();
 ```
 
----
+----
 
 ## Variation 3
 
@@ -263,7 +263,7 @@ str4 = getString();
 print(str4);
 ```
 
----
+----
 
 ## Variation 4
 
@@ -282,7 +282,7 @@ str = getString();
 print(str);
 ```
 
----
+----
 
 ## Takeaways
 
@@ -307,7 +307,7 @@ What gives?
 * What's the result of running `getString()`?
 * What's the result of running `print("What's your name?")`?
 
----
+----
 
 ## What's a function?
 
@@ -318,7 +318,7 @@ What gives?
     * `print`
     * `rollDie`
 
----
+----
 
 ## Results of evaluating
 
@@ -330,7 +330,7 @@ What gives?
   unneeded ones!
 * But we can't ignore the extra I/O from `getString`
 
----
+----
 
 ## Back to order of evaluation
 
@@ -342,7 +342,7 @@ What gives?
 * Same rules seem to apply to repeated evaluation and reordered
   evaluation
 
----
+----
 
 ## Focus on math
 
@@ -355,7 +355,7 @@ What gives?
     * Pure function
     * Data dependency
 
----
+----
 
 ## Pure function
 
@@ -367,7 +367,7 @@ What gives?
     * Little bit of a lie: we know the CPU got hotter :)
 * Different from what we call "functions" in most programming languages!
 
----
+----
 
 ## Data dependency
 
@@ -384,7 +384,16 @@ What gives?
 * Extra result with no data dependency to force order of evaluation
 * But pure functions sound so cool!
 
----
+----
+
+## The state of the world
+
+* `print` affects the state of the world (changes the console)
+* `getString` is affected by the state of the world (user input)
+* Can we somehow represent that concept in a "purely function" way?
+* Can we create some data dependency out of this?
+
+----
 
 ## Fake it
 
@@ -392,13 +401,10 @@ Imagine this crazy rewrite:
 
 ```
 fn main(iostate1):
-  iostate2 = print("What is your name?", iostate1)
-  (iostate3, name) = getString(iostate2)
-  iostate4 = print("What is your age?", iostate3)
-  (iostate5, age) = getInt(iostate4)
-  iostate6 = print( name + " is " + age + " years old"
-                  , iostate5)
-  return iostate6
+  iostate2 = print("What's your name?", iostate1)
+  (iostate3, str) = getString(iostate2)
+  iostate4 = print(str, iostate3)
+  return iostate4
 ```
 
 * Cannot try to put `getString` before first print, because...
@@ -422,26 +428,46 @@ print :: String -> IOState -> IOState
 * `getString` takes one argument, returns two values
 * `print` takes two arguments, returns one value
 
----
+----
 
 ## How was that?
 
 * It works, but it's ugly
 * We're making our life really difficult
 * Can we do better? Yes
-* But let's deal with age next
+* Let's make a _pattern_
+
+----
+
+## Type aliases
+
+Haskell lets us create type aliases with variables
+
+```haskell
+getString :: IOState -> (IOState, String)
+print     :: String -> IOState -> IOState
+```
+
+Include "dummy" value in `print`:
+
+```haskell
+getString :: IOState -> (IOState, String)
+print     :: String -> IOState -> (IOState, ())
+```
+
+And now:
+
+```haskell
+type Action a = IOState -> (IOState, a)
+getString :: Action String
+print     :: Action ()
+```
+
+A bit easier to see what's happening
 
 ---
 
 ## Exercise 2
 
-* Run `stack runghc ex2-fake-it-age.hs`
-* Make it run
-
-We now have a new helper function:
-
-```haskell
-read :: String -> Int
-```
-
-Challenge: why is this function evil?
+* Convert our previous example to the new `Action` type alias
+* Use `stack runghc ex2-fake-it-action.hs`
