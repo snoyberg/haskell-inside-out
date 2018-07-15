@@ -471,3 +471,318 @@ A bit easier to see what's happening
 
 * Convert our previous example to the new `Action` type alias
 * Use `stack runghc ex2-fake-it-action.hs`
+
+----
+
+## Functions!
+
+* Let's do some code reuse
+
+```haskell
+promptString :: String -> Action String
+promptString msg io1 =
+  let (io2, ()) = print msg io1
+      (io3, str) = getString io2
+   in (io3, str)
+```
+
+Which brings us to...
+
+---
+
+## Exercise 3
+
+* Let's build some helper functions
+* You'll need:
+
+```haskell
+showInt :: Int -> String
+readInt :: String -> Int -- why is this crazy?
+```
+
+Make `ex3-prompt-int.hs` work
+
+----
+
+## Problem
+
+* Lots of ceremony to just convert a `String` to an `Int`
+* Can we generalize? Of course!
+
+---
+
+## Exercise 4
+
+* Fix the implementation of `mapAction` in `ex4-map-action.hs`
+
+```haskell
+mapAction :: (a -> b) -> Action a -> Action b
+mapAction f action io1 =
+
+promptInt :: String -> Action Int
+promptInt msg = mapAction readInt (promptString msg)
+```
+
+---
+
+## Exercise 5
+
+* We'll do both name and age, with helper functions!
+* Fix `ex5-name-and-age.hs`
+
+---
+
+## Exercise 6
+
+* Lots of effort perform two actions
+* Let's write a helper function!
+* `ex6-do-both.hs`
+
+```haskell
+inner :: Action ()
+inner = doBoth echoName echoAge
+
+doBoth :: Action () -> Action () -> Action ()
+doBoth action1 action2 io1 =
+```
+
+Challenge: generalize the type signature for `doBoth`
+
+---
+
+## Exercise 7
+
+* Implementation of `echoName` and `echoAge` is tedious
+* Let's make it less tedious!
+* `ex7-and-then.hs`
+
+```haskell
+echoName :: Action ()
+echoName = andThen
+  (promptString "What's your name?")
+  print
+
+echoAge :: Action ()
+echoAge = andThen
+  (promptInt "What's your age?")
+  printInt
+
+printInt :: Int -> Action ()
+andThen :: Action a -> (a -> Action b) -> Action b
+```
+
+---
+
+## Abolish `IOState`
+
+* Let's face it: `IOState` is a pain
+* Tedious to write code
+* Throwing the hack in our face all the time
+* Can accidentally reuse previous states
+* We have enough machinery to stop using it directly
+
+----
+
+## Our helper functions
+
+```haskell
+mapAction :: (a -> b) -> Action a -> Action b
+doBoth :: Action a -> Action b -> Action b
+andThen :: Action a -> (a -> Action b) -> Action b
+```
+
+Looks like we can do everything we need with these.
+
+----
+
+## Hide the `IOState`
+
+* `Action` is just a type alias right now
+* Let's make it a "newtype" to hide its implementation
+
+```haskell
+newtype Action a = Action (IOState -> (IOState, a))
+```
+
+* Hide the `Action` "data constructor"
+* Now we can't play with the `IOState` values directly
+
+----
+
+## Fake exercise 8
+
+* Nothing to do
+* Look at `ex8-newtype.hs` to see the difference
+* Tada!
+
+---
+
+## You just learned monads
+
+* Sorry, forgot to mention that before
+* `mapAction` is "functor map"
+* `doBoth` is "applicative next"
+* `andThen` is "monadic bind"
+* We invented these concepts automatically to meet two constraints
+    * Purely functional
+    * Not painful
+* (Also, I kind of intended to get there)
+
+----
+
+## Real monads
+
+* Using the real monad machinery in Haskell is nicer
+* You get `do`-notation
+* Let's see one final exercise: rewriting to real monads
+* Open `ex9-enough-already.hs`
+
+----
+
+## Takeaways
+
+* Monads are a natural way to sequence actions in a purely functional
+  language
+* However, monads are more general than that!
+* We can use the same machinery for other kinds of things
+    * This may not have a value (`Maybe`)
+    * This carries some extra data (`State`)
+* Ultimately, `do`-notation gives us a similar imperative feel, but
+  based on purity
+* Pure functions provide extra power
+
+---
+
+## Exercise 10
+
+Remember this thingy?
+
+```
+x1 = 2 + 3;
+x2 = 2 + 3;
+x3 = 2 + 3;
+x4 = 2 + 3;
+y = 4 + 5;
+z = x4 * y;
+return z;
+```
+
+Rewrite it in Haskell! `ex10-extra-computation.hs`
+
+----
+
+## Question
+
+* How many times did your processor calculate `2 + 3`?
+* Not easy to prove it
+* Let's try something else
+
+---
+
+## Exercise 11
+
+Predict the output of this program `ex11-error.hs`
+
+```haskell
+main = print inner
+
+inner :: Int
+inner =
+  let w = error "this is not needed!"
+      x = 2 + 3
+      y = 4 + 5
+   in x * y
+```
+
+----
+
+## `w` is not needed
+
+* No data dependency on `w`
+* In Haskell, we say that the value is never _forced_
+* Therefore: the error is never thrown
+
+----
+
+## Similarly...
+
+What does this mean?
+
+```haskell
+main = print inner
+
+inner :: Int
+inner =
+  let w = print "Hello World!"
+      x = 2 + 3
+      y = 4 + 5
+   in x * y
+```
+
+----
+
+## Action vs pure value
+
+* Haskell distinguishes betweens _actions_ and _pure values_
+* To perform an action, we have to _sequence it_ (e.g., `do`-notation)
+* To evaluate a value, we have to _force it_
+* This is a natural outcome of purity
+* Values which aren't forced are _thunks_, which is _laziness_
+
+---
+
+## Exercise 12
+
+What's the output of this program `ex12-lazy-and.hs`
+
+```haskell
+myAnd :: Bool -> Bool -> Bool
+myAnd True x = x
+myAnd False _ = False
+
+main :: IO ()
+main = do
+  print (myAnd (2 > 1) (3 > 2))
+  print (myAnd (2 > 1) (1 > 2))
+  print (myAnd (1 > 2) (2 > 1))
+  print (myAnd (1 > 2) (2 > undefined))
+  print (myAnd (2 > 1) (2 > undefined))
+```
+
+----
+
+## Short circuiting for free
+
+* Most languages: `&&` and `||` are special-cased short circuiting
+* In Haskell: _everything_ can short circuit like that
+* Does require thinking a bit about "is this evaluated here"
+
+---
+
+## Immutability
+
+* Not going into detail here
+* Have a rule: function must always return same output for same input
+* Consider this function:
+
+```haskell
+f :: Int -> Int
+f _ = x
+
+x :: Int
+x = 5
+```
+
+* What happens if `x` can be changed?
+* QED Haskell variables must be immutable by default
+* Mutable _does_ exist, but we won't get into it today
+
+---
+
+## Further info
+
+* What Makes Haskell Unique [Slides](https://www.snoyman.com/reveal/what-makes-haskell-unique) [Video](https://www.youtube.com/watch?v=DebDaiYev2M&t=1s)
+* [Get Started](https://haskell-lang.org/get-started)
+* [FP Complete Haskell Syllabus](https://www.fpcomplete.com/haskell-syllabus)
+* [Functors, Applicatives, and Monads](https://www.snoyman.com/blog/2017/01/functors-applicatives-and-monads)
+* [All About Strictness](https://www.fpcomplete.com/blog/2017/09/all-about-strictness) (advanced)
