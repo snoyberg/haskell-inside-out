@@ -53,7 +53,7 @@ title: Haskell from the Inside Out
 * Most other weird things derive from that
 * Purely functional is nice
     * Better testing
-    * Referential transparency (reason about code)
+    * "Reason about code"
     * Allows some optimizations
     * Trivially create Software Transactional Memory
 * Not obvious how to make this work in a programming language
@@ -390,7 +390,7 @@ What gives?
 
 * `print` affects the state of the world (changes the console)
 * `getString` is affected by the state of the world (user input)
-* Can we somehow represent that concept in a "purely function" way?
+* Can we somehow represent that concept in a "purely functional" way?
 * Can we create some data dependency out of this?
 
 ----
@@ -422,7 +422,7 @@ fn main(iostate1):
 
 ```haskell
 getString :: IOState -> (IOState, String)
-print :: String -> IOState -> IOState
+print     :: String -> IOState -> IOState
 ```
 
 * `getString` takes one argument, returns two values
