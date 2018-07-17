@@ -460,7 +460,7 @@ And now:
 ```haskell
 type Action a = IOState -> (IOState, a)
 getString :: Action String
-print     :: Action ()
+print     :: String -> Action ()
 ```
 
 A bit easier to see what's happening
