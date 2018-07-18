@@ -427,6 +427,7 @@ print     :: String -> IOState -> IOState
 
 * `getString` takes one argument, returns two values
 * `print` takes two arguments, returns one value
+* Underscore == "fill in the blank"
 
 ----
 
