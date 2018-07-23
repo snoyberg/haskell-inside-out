@@ -1,5 +1,5 @@
 import FakeIt3
-import Prelude ()
+import Prelude ((.))
 
 echoName :: Action ()
 echoName = andThen
@@ -12,7 +12,7 @@ echoAge = andThen
   printInt
 
 printInt :: Int -> Action ()
-printInt = _
+printInt = print . showInt
 
 andThen :: Action a -> (a -> Action b) -> Action b
 andThen getVal useVal io1 =
